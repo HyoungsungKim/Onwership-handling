@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  solc:
+    #image: golang:alpine
+    build: .
+    ports:
+      - 10010:10010
+    working_dir: /app
+    volumes:
+      - ./:/app
+    stdin_open: true
+    tty: true
