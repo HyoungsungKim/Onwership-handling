@@ -2,6 +2,7 @@ FROM ubuntu:latest
 
 RUN mkdir app
 
+# RUN chmod -R 777 ./
 RUN chmod -R 777 root app
 
 RUN apt-get update

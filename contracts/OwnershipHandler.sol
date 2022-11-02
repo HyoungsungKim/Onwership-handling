@@ -1,51 +1,60 @@
-// SPDX-License-Identifier: CC0-1:0
+// SPDX-License-Identifier: CC0-1.0
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./IOwnershipHandler.sol";
 
-contract OwnershipHandler is ERC721URIStorage, IOwnersipHandler {
+import "hardhat/console.sol";
+
+contract OwnershipHandler is ERC721URIStorage, IOwnershipHandler {
     struct UserInfo {
         address user;
         uint64 expires;
     }
 
     mapping (uint256 => UserInfo) internal _users;
+    mapping (address => uint256[]) internal _owning;
 
-    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {
+        console.log("Deploied");
+    }
+    
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    function mintNFT(address _to, string memory _tokenURI) public returns (uint256) {
+    function mintNFT(address _to) public returns (uint256) {
         _tokenIds.increment();
-
         uint256 newNFTId = _tokenIds.current();
         _mint(_to, newNFTId);
-        _setTokenURI(newNFTId, _tokenURI);
 
-        //emit Transfer(msg.sender, _to, newNFTId);
+        if (_owning[_to].length == 0) {
+            _owning[_to] = [newNFTId];
+        } else {
+            _owning[_to].push(newNFTId);
+        }
+
+        //_setTokenURI(newNFTId, _tokenURI);
+        // _mint already emits Transfer event
+        //emit Transfer(address(0), _to, newNFTId);
 
         return newNFTId;
-    }
-    
-    function tokenURI(uint256 tokenId) public view override (ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
     }
 
     function _burn(uint256 tokenId) internal override (ERC721URIStorage) {
         super._burn(tokenId);
     }
 
-
-
-    function setUser(uint256 tokenId, address user, uint64 expires) public override {
+    function setUser(uint256 tokenId, address _user, uint64 expires) public override {
         require(_isApprovedOrOwner(msg.sender, tokenId), "ERC4907: transfer caller is not owner nor approved");
+        require(uint256(_users[tokenId].expires) <= block.timestamp, "It already has a user");
         UserInfo storage info = _users[tokenId];
-        info.user = user;
+        info.user = _user;
         info.expires = expires;
-        emit UpdateUser(tokenId, user, expires);
+
+        emit UpdateUser(tokenId, _user, expires);
     }
 
     function userOf(uint256 tokenId) public view override returns(address) {
@@ -61,7 +70,7 @@ contract OwnershipHandler is ERC721URIStorage, IOwnersipHandler {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IERC4907).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IOwnershipHandler).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function _beforeTokenTransfer(
@@ -75,6 +84,10 @@ contract OwnershipHandler is ERC721URIStorage, IOwnersipHandler {
             delete _users[tokenId];
             emit UpdateUser(tokenId, address(0), 0);
         }
+    }
+
+    function viewOwning(address owner) public view override returns(uint256[] memory) {
+        return _owning[owner];
     }
 }
 

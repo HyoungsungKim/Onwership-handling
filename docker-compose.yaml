@@ -11,3 +11,5 @@ services:
       - ./:/app
     stdin_open: true
     tty: true
+    environment:
+    - CHOKDIR_USERPOOLING=true

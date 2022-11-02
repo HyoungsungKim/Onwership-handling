@@ -1,35 +1,31 @@
-// SPDX-License-Identifier: CC0-1:0
+// SPDX-License-Identifier: CC0-1.0
 
-interface IOwnersipHandler {
-    /// Logged when the collateral of an NFT is changed
-    /// @notice Emitted when the amount of collateral is updated
-    event UpdateCollateral(uint256 indexed tokenId, uint256 collateral);
+// Based on ERC-4907 Demo
+interface IOwnershipHandler {
 
-    /// @notice Map the amount of an asset to NFT
-    /// Throws if NFT does not exist
-    /// @param tokenId An Id of existing NFT
-    /// @param amount The amount of an asset, such as Ether, ERC-20 tokens
-    function _collateralize(uint256 tokenId, uint256 amount) external;
+    // Logged when the user of an NFT is changed or expires is changed
+    /// @notice Emitted when the `user` of an NFT or the `expires` of the `user` is changed
+    /// The zero address for user indicates that there is no user address
+    event UpdateUser(uint256 indexed tokenId, address indexed user, uint64 expires);
 
-    /// @notice Increase the amount of an collateral that backing an NFT
-    /// Call _collateralize function inside
-    /// @param tokenId An Id of existing NFT    
-    function increaseCollateral(uint256 tokenId) external payable;
+    /// @notice set the user and expires of an NFT
+    /// @dev The zero address indicates there is no user
+    /// Throws if `tokenId` is not valid NFT
+    /// @param user  The new user of the NFT
+    /// @param expires  UNIX timestamp, The new user could use the NFT before expires
+    function setUser(uint256 tokenId, address user, uint64 expires) external;
 
-    /// @notice Reduce the part of the collateral backing value of NFT and send it to an NFT owner
-    /// Throws a message sender does not own NFT
-    /// Throws a message sender reduces more collateral than existing
-    /// @param tokenId An Id of existing NFT
-    function decreaseCollateral(uint256 tokenId) external payable;
+    /// @notice Get the user address of an NFT
+    /// @dev The zero address indicates that there is no user or the user is expired
+    /// @param tokenId The NFT to get the user address for
+    /// @return The user address for this NFT
+    function userOf(uint256 tokenId) external view returns(address);
 
-    /// @notice Reduce all collateral that backing NFT, and send it to an NFT owner
-    /// Throws a message sender does not own NFT
-    /// @param tokenId An Id of existing NFT
-    function liquidation(uint256 tokenId) external payable;
+    /// @notice Get the user expires of an NFT
+    /// @dev The zero value indicates that there is no user
+    /// @param tokenId The NFT to get the user expires for
+    /// @return The user expires for this NFT
+    function userExpires(uint256 tokenId) external view returns(uint256);
 
-    /// @notice Gives balance of the collateral backing value of NFT
-    /// Throws if NFT does not exist
-    /// @param tokenId An Id of existing NFT
-    /// @return The balance of the collateral backing value of NFT
-    function getBalanceById(uint256 tokenId) external view returns (uint256);
+    function viewOwning(address owner) external view returns(uint256[] memory);
 }
