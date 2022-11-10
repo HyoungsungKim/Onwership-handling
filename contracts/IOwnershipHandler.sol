@@ -28,4 +28,9 @@ interface IOwnershipHandler {
     function userExpires(uint256 tokenId) external view returns(uint256);
 
     function viewOwning(address owner) external view returns(uint256[] memory);
+
+    function setPubKey(string memory pubKey) external;
+
+    function getPubKey(address addr) external view returns(string memory);
+
 }
