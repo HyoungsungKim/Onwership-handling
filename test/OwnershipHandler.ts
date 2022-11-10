@@ -10,7 +10,7 @@ describe("OwnershipHandler", async function () {
         const OwnershipHandling = await ethers.getContractFactory("OwnershipHandler")    
         const ownershipHandling = await OwnershipHandling.deploy("Media art", "MART")
         await ownershipHandling.deployed()
-
+        console.log(ownershipHandling)
         return {signers, ownershipHandling}
     }
     
