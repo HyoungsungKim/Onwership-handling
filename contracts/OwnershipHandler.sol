@@ -19,7 +19,8 @@ contract OwnershipHandler is ERC721URIStorage, IOwnershipHandler {
         bool userConfirm;
         string encryptedPhraseByOwner; // Owner encrypt a filename using the pubkey of the user
         string encryptedPhraseByUser; // User encrypt a path using the pubkey of the owner
-        bytes updatedEncryptedURI; // AES encrypted
+        bytes updatedEncryptedURI; // Hash of URI
+        //uint256 amount
     }
 
     struct BankAccount {
@@ -132,8 +133,8 @@ contract OwnershipHandler is ERC721URIStorage, IOwnershipHandler {
         return _bankAccount[msg.sender].amount;
     }
 
-    // Temporary public for testing implementation
-    function _transferAsset(address from, address to, uint256 amount) public {
+    // Temporary public for implementation test
+    function _transferAsset(address from, address to, uint256 amount) public { // private {
         require(from == _bankAccount[from].owner, "From addres does not match");
         require(amount <= _bankAccount[from].amount, "Deposit is not enough");
         payable(to).transfer(amount);
@@ -142,9 +143,9 @@ contract OwnershipHandler is ERC721URIStorage, IOwnershipHandler {
 
 
     // function updateURI...
-    // User wants this URI path
+    // Owner sets path that user want
     function setUpdatedEncryptedURI(uint256 tokenId, bytes memory updatedEncryptedURI) external {
-        require(tokenId <= _tokenIds.current());
+        //require(tokenId <= _tokenIds.current());
         require(ownerOf(tokenId) == msg.sender);
 
         _handshake[tokenId].updatedEncryptedURI = updatedEncryptedURI;
@@ -170,7 +171,7 @@ contract OwnershipHandler is ERC721URIStorage, IOwnershipHandler {
 
     function updateURIandTransfer(uint256 tokenId, uint256 amount, string memory newURIHash) external {
         require(msg.sender == ownerOf(tokenId) || msg.sender == userOf(tokenId), "Message sender does not the owner or the user");
-        require(ownerOf(tokenId) != address(0), "Owner is zero address");
+        //require(ownerOf(tokenId) != address(0), "Owner is zero address");
         require(userOf(tokenId) != address(0), "User is zero address");
         require(_handshake[tokenId].ownerConfirm == true, "Owner does not confirm yet");
         require(_handshake[tokenId].userConfirm == true, "User does not confirm yet");
@@ -180,7 +181,9 @@ contract OwnershipHandler is ERC721URIStorage, IOwnershipHandler {
         _beforeTokenTransfer(ownerAddr, userAddrr, tokenId);
         transferFrom(ownerAddr, userAddrr, tokenId);
         _transferAsset(userAddrr, ownerAddr, amount);
+        //_transferAsset(userAddr, ownerAddr, _handshake[tokenId].amount)
         _setTokenURI(tokenId, newURIHash);
+        //_setTokenURI(tokenId, string(_handshake[tokenId].updatedEncryptedURI));
     }
 }
 

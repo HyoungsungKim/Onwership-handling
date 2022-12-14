@@ -804,7 +804,7 @@ function SetUserConfirm(props: Props): JSX.Element {
     const hashedPath = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(filePath! + decryptedFileName))
     console.log(hashedPath)
     console.log(expect)
-    console.log(hashedPath == expect)
+    //console.log(hashedPath == expect)
     contract.setUserConfirm(tokenId, hashedPath, txOverrides)
     setHashedPath(hashedPath)
 
